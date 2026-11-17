@@ -7,15 +7,13 @@ COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
 COPY . .
-RUN npm run build
+RUN npm run build \
+    && npm install --prefix /vite-runtime \
+       --omit=dev \
+       --legacy-peer-deps \
+       vite@5
 
-# Install only Vite for the runtime stage.
-RUN npm install --prefix /vite-runtime \
-    --omit=dev \
-    --legacy-peer-deps \
-    vite@5
-
-# Serve the built files with Vite's preview server.
+# Runtime image contains the built files and Vite, not the build toolchain.
 FROM dhi.io/node:22-alpine3.24 AS runtime
 
 WORKDIR /app
