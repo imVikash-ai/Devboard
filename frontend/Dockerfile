@@ -1,5 +1,5 @@
 # Build the app and prepare Vite for the preview runtime.
-FROM dhi.io/node:22-alpine3.24-dev AS build
+FROM dhi.io/node:26-alpine3.24-dev AS build
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ RUN npm run build \
        vite@5
 
 # Runtime image contains the built files and Vite, not the build toolchain.
-FROM dhi.io/node:22-alpine3.24 AS runtime
+FROM dhi.io/node:26-alpine3.24 AS runtime
 
 WORKDIR /app
 
