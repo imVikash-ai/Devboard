@@ -1,28 +1,18 @@
-FROM dhi.io/node:26-dev AS build
+# Build the Vite app.
+FROM dhi.io/node:22-alpine3.24-dev AS build
 
 WORKDIR /app
 
-COPY package*.json ./
-
-RUN npm install --legacy-peer-deps
-
-RUN npm list vite > /dev/null 2>&1 || npm install --no-save vite@5.4.11
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
 
 COPY . .
-
 RUN npm run build
 
-FROM dhi.io/node:26
+# Serve only static assets; do not include Node.js dependencies in runtime.
+FROM dhi.io/nginx:1.30.6-alpine3.24 AS runtime
 
-WORKDIR /app
+COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
-COPY --from=build /app/dist ./dist
-
-COPY --from=build /app/node_modules ./node_modules
-
-COPY vite.preview.config.js ./vite.config.js
-
-EXPOSE 4173
-
-ENTRYPOINT ["node", "--no-warnings"]
-CMD ["./node_modules/.bin/vite", "preview", "--host", "0.0.0.0", "--port", "4173"]
+USER nginx
+EXPOSE 8080
