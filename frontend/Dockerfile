@@ -1,16 +1,31 @@
-# Stage 1 — build the app into static files
-FROM node:20-alpine AS build
+# Build the app and prepare Vite for the preview runtime.
+FROM dhi.io/node:22-alpine3.24-dev AS build
+
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
+
 COPY . .
 RUN npm run build
 
-# Stage 2 — small image that only serves the build (no nginx)
-FROM node:20-alpine
+# Install only Vite for the runtime stage.
+RUN npm install --prefix /vite-runtime \
+    --omit=dev \
+    --legacy-peer-deps \
+    vite@5
+
+# Serve the built files with Vite's preview server.
+FROM dhi.io/node:22-alpine3.24 AS runtime
+
 WORKDIR /app
-RUN npm install -g vite@5 && npm cache clean --force
-COPY --from=build /app/dist ./dist
-COPY vite.preview.config.js ./vite.config.js
+
+COPY --from=build --chown=65532:65532 /app/dist ./dist
+COPY --from=build --chown=65532:65532 /vite-runtime/node_modules ./node_modules
+COPY --chown=65532:65532 vite.preview.config.js ./vite.config.js
+
+USER 65532:65532
 EXPOSE 4173
-CMD ["vite", "preview", "--host", "0.0.0.0", "--port", "4173"]
+
+ENTRYPOINT ["node", "/app/node_modules/vite/bin/vite.js"]
+CMD ["preview", "--host", "0.0.0.0", "--port", "4173"]
