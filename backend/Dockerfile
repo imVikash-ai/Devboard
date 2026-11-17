@@ -1,20 +1,22 @@
-# Single-stage: build and run the Go binary from the same golang image.
-# (No multi-stage yet — slimming the final image comes later in the course.)
-FROM golang:1.22-alpine
+FROM dhi.io/golang:1.26.11-alpine3.24-dev AS builder
 
 WORKDIR /app
 
-# Download deps first for better layer caching.
+# Download dependencies first for better layer caching.
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Build the binary.
 COPY . .
-RUN CGO_ENABLED=0 go build -o devboard-backend .
+RUN mkdir -p /out \
+    && CGO_ENABLED=0 GOOS=linux go build \
+       -trimpath -ldflags="-s -w" \
+       -o /out/devboard-backend .
 
-# Run as a non-root user.
-RUN adduser -D -u 10001 app && chown -R app:app /app
-USER app
+FROM dhi.io/golang:1.26.11-alpine3.24
 
+WORKDIR /app
+COPY --from=builder --chown=65532:65532 /out/devboard-backend ./devboard-backend
+
+USER 65532:65532
 EXPOSE 8080
-ENTRYPOINT ["./devboard-backend"]
+ENTRYPOINT ["/app/devboard-backend"]
