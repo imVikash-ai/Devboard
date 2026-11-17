@@ -1,29 +1,28 @@
-# Build the app and prepare Vite for the preview runtime.
-FROM dhi.io/node:26-alpine3.24-dev AS build
+FROM dhi.io/node:26-dev AS build
 
 WORKDIR /app
 
 COPY package*.json ./
+
 RUN npm install --legacy-peer-deps
 
-COPY . .
-RUN npm run build \
-    && npm install --prefix /vite-runtime \
-       --omit=dev \
-       --legacy-peer-deps \
-       vite@5
+RUN npm list vite > /dev/null 2>&1 || npm install --no-save vite@5.4.11
 
-# Runtime image contains the built files and Vite, not the build toolchain.
-FROM dhi.io/node:26-alpine3.24 AS runtime
+COPY . .
+
+RUN npm run build
+
+FROM dhi.io/node:26
 
 WORKDIR /app
 
-COPY --from=build --chown=65532:65532 /app/dist ./dist
-COPY --from=build --chown=65532:65532 /vite-runtime/node_modules ./node_modules
-COPY --chown=65532:65532 vite.preview.config.js ./vite.config.js
+COPY --from=build /app/dist ./dist
 
-USER 65532:65532
+COPY --from=build /app/node_modules ./node_modules
+
+COPY vite.preview.config.js ./vite.config.js
+
 EXPOSE 4173
 
-ENTRYPOINT ["node", "/app/node_modules/vite/bin/vite.js"]
-CMD ["preview", "--host", "0.0.0.0", "--port", "4173"]
+ENTRYPOINT ["node", "--no-warnings"]
+CMD ["./node_modules/.bin/vite", "preview", "--host", "0.0.0.0", "--port", "4173"]
