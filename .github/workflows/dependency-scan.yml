@@ -27,14 +27,6 @@ jobs:
               run: govulncheck ./... > reports/dependency-report.txt
               working-directory: backend
 
-            - name: Upload Report to Artifacts
-              if: always()  # Ensure the artifact is uploaded even if the previous step fails
-              uses: actions/upload-artifact@v4
-              with:
-                name: dependency-scan-report
-                path: reports/dependency-report.txt
-                retention-days: 7  # Keep the artifact for 7 days
-
             - name: Setup Node.js
               uses: actions/setup-node@v6
               with:
@@ -45,3 +37,12 @@ jobs:
             - name: Run Dependency Scan for Node
               run: npm audit
               working-directory: frontend
+
+            
+            - name: Upload Report to Artifacts
+              if: always()  # Ensure the artifact is uploaded even if the previous step fails
+              uses: actions/upload-artifact@v4
+              with:
+                name: dependency-scan-report
+                path: reports/dependency-report.txt
+                retention-days: 7  # Keep the artifact for 7 days
