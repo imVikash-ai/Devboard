@@ -1,4 +1,4 @@
-# Build the Vite frontend.
+
 FROM dhi.io/node:26-alpine3.24-dev AS build
 
 WORKDIR /app

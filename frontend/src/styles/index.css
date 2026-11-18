@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.js";
 
 :root {
   --db-accent:        #7F77DD;
@@ -71,12 +70,12 @@ body {
     @apply inline-flex items-center justify-center gap-2 h-9 rounded px-4
            text-[13px] font-medium transition select-none whitespace-nowrap;
   }
-  .db-btn-primary   { @apply db-btn bg-accent text-white hover:bg-accent-hover focus:shadow-focus
+  .db-btn-primary   { @apply inline-flex items-center justify-center gap-2 h-9 rounded px-4 text-[13px] font-medium transition select-none whitespace-nowrap bg-accent text-white hover:bg-accent-hover focus:shadow-focus
                        shadow-[0_1px_0_0_rgba(0,0,0,0.04),inset_0_-1px_0_0_rgba(0,0,0,0.08)]; }
-  .db-btn-secondary { @apply db-btn bg-white dark:bg-[#1c1c1f] border border-ink-100 text-ink-950
+  .db-btn-secondary { @apply inline-flex items-center justify-center gap-2 h-9 rounded px-4 text-[13px] font-medium transition select-none whitespace-nowrap bg-white dark:bg-[#1c1c1f] border border-ink-100 text-ink-950
                        dark:text-white dark:border-white/15 hover:bg-ink-50 dark:hover:bg-white/5; }
-  .db-btn-ghost     { @apply db-btn bg-transparent text-accent hover:text-accent-hover px-2; }
-  .db-btn-danger    { @apply db-btn bg-danger-bg text-[#A32D2D] border-0; }
+  .db-btn-ghost     { @apply inline-flex items-center justify-center gap-2 h-9 rounded px-4 text-[13px] font-medium transition select-none whitespace-nowrap bg-transparent text-accent hover:text-accent-hover px-2; }
+  .db-btn-danger    { @apply inline-flex items-center justify-center gap-2 h-9 rounded px-4 text-[13px] font-medium transition select-none whitespace-nowrap bg-danger-bg text-[#A32D2D] border-0; }
 
   /* Decorative chip with a leading dot — used for status/source indicators */
   .db-chip {
