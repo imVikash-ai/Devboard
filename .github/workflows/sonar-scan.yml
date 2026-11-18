@@ -9,11 +9,10 @@ jobs:
     scan-sonarqube:
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
-
-            - name: SonarQube Scan
-              uses: SonarSource/sonarqube-scan-action@v5 # See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+            - uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
               env:
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
                 SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
