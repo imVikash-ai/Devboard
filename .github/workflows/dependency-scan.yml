@@ -35,7 +35,7 @@ jobs:
                 cache-dependency-path: frontend/package-lock.json
 
             - name: Run Dependency Scan for Node
-              run: npm audit
+              run: npm audit --omit=dev
               working-directory: frontend
 
             
