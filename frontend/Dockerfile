@@ -1,50 +1,18 @@
-
-# ============================================
-# Stage 1: Build React + Vite application
-# ============================================
-FROM node:24-bookworm-slim AS build
+# Build the Vite frontend.
+FROM dhi.io/node:26-alpine3.24-dev AS build
 
 WORKDIR /app
 
-# Copy dependency manifests first for Docker caching
 COPY package.json package-lock.json ./
-
-# Install exact dependencies from package-lock.json
 RUN npm ci
 
-# Copy application source code
 COPY . .
-
-# Build production application
 RUN npm run build
 
+# Serve only the generated static files.
+FROM dhi.io/nginx:1.30.6-alpine3.24 AS runtime
 
-# ============================================
-# Stage 2: Production static server
-# ============================================
-FROM node:24-bookworm-slim AS production
+COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
-WORKDIR /app
-
-# Install lightweight static server
-RUN npm install --global serve@14.2.4 \
-    && npm cache clean --force
-
-# Copy only production build files
-COPY --from=build --chown=node:node /app/dist ./dist
-
-# Run application as non-root user
-USER node
-
-# Application port
-EXPOSE 4173
-
-# Health check
-HEALTHCHECK --interval=30s \
-            --timeout=5s \
-            --start-period=10s \
-            --retries=3 \
-    CMD wget -q -O /dev/null http://127.0.0.1:4173/ || exit 1
-
-# Start static server
-CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:4173"]
+USER nginx
+EXPOSE 8080
