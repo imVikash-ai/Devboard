@@ -1,0 +1,19 @@
+# Goal: TO check whether the app code coverage does not have security thread. 
+
+name: Sonar Qube Scan
+
+on:
+    workflow_call:
+
+jobs:
+    scan-sonarqube:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: SonarQube Scan
+              uses: SonarSource/sonarqube-scan-action@v5 # See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
+              env:
+                SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+                SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
