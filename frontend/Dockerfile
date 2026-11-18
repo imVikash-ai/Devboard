@@ -1,16 +1,50 @@
-# Stage 1 — build the app into static files
-FROM node:20-alpine AS build
+
+# ============================================
+# Stage 1: Build React + Vite application
+# ============================================
+FROM node:24-bookworm-slim AS build
+
 WORKDIR /app
-COPY package*.json ./
+
+# Copy dependency manifests first for Docker caching
+COPY package.json package-lock.json ./
+
+# Install exact dependencies from package-lock.json
 RUN npm ci
+
+# Copy application source code
 COPY . .
+
+# Build production application
 RUN npm run build
 
-# Stage 2 — small image that only serves the build (no nginx)
-FROM node:20-alpine
+
+# ============================================
+# Stage 2: Production static server
+# ============================================
+FROM node:24-bookworm-slim AS production
+
 WORKDIR /app
-RUN npm install -g vite@5 && npm cache clean --force
-COPY --from=build /app/dist ./dist
-COPY vite.preview.config.js ./vite.config.js
+
+# Install lightweight static server
+RUN npm install --global serve@14.2.4 \
+    && npm cache clean --force
+
+# Copy only production build files
+COPY --from=build --chown=node:node /app/dist ./dist
+
+# Run application as non-root user
+USER node
+
+# Application port
 EXPOSE 4173
-CMD ["vite", "preview", "--host", "0.0.0.0", "--port", "4173"]
+
+# Health check
+HEALTHCHECK --interval=30s \
+            --timeout=5s \
+            --start-period=10s \
+            --retries=3 \
+    CMD wget -q -O /dev/null http://127.0.0.1:4173/ || exit 1
+
+# Start static server
+CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:4173"]
